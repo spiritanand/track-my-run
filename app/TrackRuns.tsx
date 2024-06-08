@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { BackgroundGradient } from "@/components/ui/background-gradient";
+import { BackgroundGradient } from "@/components/ui/background-gradient"; // Promise based geolocation
 
 // Promise based geolocation
 const getLocation = () => {
@@ -25,13 +25,14 @@ async function geoFindMe() {
 
 function TrackRuns() {
   const [isRunStart, setIsRunStart] = useState(false);
-  const [prevOriginPosition, setPrevOriginPosition] = useState({
-    latitude: 0,
-    longitude: 0,
-  });
   const [totalDistance, setTotalDistance] = useState(0);
 
   useEffect(() => {
+    let prevOriginPosition = {
+      latitude: 0,
+      longitude: 0,
+    };
+
     const controller = new AbortController();
 
     const trackRun = async () => {
@@ -43,11 +44,16 @@ function TrackRuns() {
         if (
           prevOriginPosition.latitude === 0 &&
           prevOriginPosition.longitude === 0
-        )
-          return setPrevOriginPosition({
+        ) {
+          prevOriginPosition = {
             latitude,
             longitude,
-          });
+          };
+
+          void trackRun();
+
+          return;
+        }
 
         const url = "https://routes.googleapis.com/directions/v2:computeRoutes";
         const body = {
@@ -99,23 +105,24 @@ function TrackRuns() {
           setTotalDistance((prevState) => prevState + distance);
         }
 
-        setPrevOriginPosition({
+        prevOriginPosition = {
           latitude,
           longitude,
-        });
+        };
+
+        new Promise((resolve) => setTimeout(resolve, 5000)).then(async () => {
+          await trackRun();
+        }); // add delay of 5 seconds
       }
     };
 
-    const intervalId = setInterval(() => {
-      void trackRun();
-    }, 5000);
+    void trackRun();
 
     // Cleanup function to clear the interval
     return () => {
       controller.abort();
-      clearInterval(intervalId);
     };
-  }, [isRunStart, prevOriginPosition]);
+  }, [isRunStart]);
 
   return (
     <div className="container flex items-center justify-center flex-col gap-5 mt-8 lg:mt-20">
