@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BackgroundGradient } from "@/components/ui/background-gradient"; // Promise based geolocation
+import { motion } from "framer-motion";
+import { BackgroundGradient } from "@/components/ui/background-gradient";
 
 // Promise based geolocation
 const getLocation = () => {
@@ -22,8 +23,6 @@ async function geoFindMe() {
   };
 }
 
-let i = 0;
-
 function TrackRuns() {
   const [isRunStart, setIsRunStart] = useState(false);
   const [prevOriginPosition, setPrevOriginPosition] = useState({
@@ -33,16 +32,13 @@ function TrackRuns() {
   const [totalDistance, setTotalDistance] = useState(0);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const trackRun = async () => {
+      const signal = controller.signal;
+
       if (isRunStart) {
         const { latitude, longitude } = await geoFindMe();
-
-        console.log({
-          latitude,
-          longitude,
-        });
-
-        console.log({ prevOriginPosition });
 
         if (
           prevOriginPosition.latitude === 0 &&
@@ -67,7 +63,7 @@ function TrackRuns() {
             location: {
               latLng: {
                 latitude: latitude,
-                longitude: longitude + i,
+                longitude: longitude,
               },
             },
           },
@@ -84,6 +80,7 @@ function TrackRuns() {
               "routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline",
           },
           body: JSON.stringify(body),
+          signal,
         });
 
         const data = await response.json();
@@ -115,6 +112,7 @@ function TrackRuns() {
 
     // Cleanup function to clear the interval
     return () => {
+      controller.abort();
       clearInterval(intervalId);
     };
   }, [isRunStart, prevOriginPosition]);
@@ -131,14 +129,18 @@ function TrackRuns() {
         </span>
       </button>
 
-      <BackgroundGradient className="rounded-[22px] max-w-sm p-4 sm:p-10 bg-white dark:bg-zinc-900">
-        <p className="text-base sm:text-xl text-black mt-4 mb-2 dark:text-neutral-200">
-          Distance Covered
-        </p>
-        <p className="text-5xl text-neutral-600 dark:text-neutral-400">
-          {totalDistance} KM
-        </p>
-      </BackgroundGradient>
+      {isRunStart ? (
+        <motion.div animate={{ y: 50 }}>
+          <BackgroundGradient className="rounded-[22px] max-w-sm p-4 sm:p-10 bg-white dark:bg-zinc-900">
+            <p className="text-base sm:text-xl text-black mt-4 mb-2 dark:text-neutral-200">
+              Distance Covered
+            </p>
+            <p className="text-5xl text-neutral-600 dark:text-neutral-400">
+              {totalDistance / 1000} KM
+            </p>
+          </BackgroundGradient>
+        </motion.div>
+      ) : null}
     </div>
   );
 }
