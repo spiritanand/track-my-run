@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button"; // Promise based geolocation
+import { BackgroundGradient } from "@/components/ui/background-gradient"; // Promise based geolocation
 
 // Promise based geolocation
 const getLocation = () => {
@@ -37,20 +37,12 @@ function TrackRuns() {
       if (isRunStart) {
         const { latitude, longitude } = await geoFindMe();
 
-        i = i + 0.001;
-
         console.log({
           latitude,
           longitude,
         });
 
         console.log({ prevOriginPosition });
-
-        if (
-          prevOriginPosition.latitude === latitude &&
-          prevOriginPosition.longitude === longitude
-        )
-          return;
 
         if (
           prevOriginPosition.latitude === 0 &&
@@ -128,14 +120,25 @@ function TrackRuns() {
   }, [isRunStart, prevOriginPosition]);
 
   return (
-    <div className="container">
-      <Button
-        variant={isRunStart ? "destructive" : "default"}
+    <div className="container flex items-center justify-center flex-col gap-5 mt-8 lg:mt-20">
+      <button
+        className="relative inline-flex h-12 overflow-hidden rounded-full p-[1px] focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
         onClick={() => setIsRunStart((prevState) => !prevState)}
       >
-        {isRunStart ? "Stop" : "Start"}
-      </Button>
-      <p>{totalDistance}</p>
+        <span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]" />
+        <span className="inline-flex h-full w-full cursor-pointer items-center justify-center rounded-full bg-slate-950 px-3 py-1 text-sm font-medium text-white backdrop-blur-3xl text-2xl">
+          {isRunStart ? "Stop" : "Start"}
+        </span>
+      </button>
+
+      <BackgroundGradient className="rounded-[22px] max-w-sm p-4 sm:p-10 bg-white dark:bg-zinc-900">
+        <p className="text-base sm:text-xl text-black mt-4 mb-2 dark:text-neutral-200">
+          Distance Covered
+        </p>
+        <p className="text-5xl text-neutral-600 dark:text-neutral-400">
+          {totalDistance} KM
+        </p>
+      </BackgroundGradient>
     </div>
   );
 }
