@@ -50,7 +50,7 @@ function TrackRuns() {
             longitude,
           };
 
-          void trackRun();
+          await trackRun();
 
           return;
         }
@@ -93,6 +93,19 @@ function TrackRuns() {
 
         const routes = data.routes;
 
+        if (!routes || !routes.length) {
+          prevOriginPosition = {
+            latitude,
+            longitude: longitude,
+          };
+
+          // add delay of 5 seconds
+          await new Promise((resolve) => setTimeout(resolve, 5000));
+          await trackRun();
+
+          return;
+        }
+
         // distance in meters
         const distance = routes[0]?.distanceMeters;
 
@@ -107,12 +120,12 @@ function TrackRuns() {
 
         prevOriginPosition = {
           latitude,
-          longitude,
+          longitude: longitude,
         };
 
-        new Promise((resolve) => setTimeout(resolve, 5000)).then(async () => {
-          await trackRun();
-        }); // add delay of 5 seconds
+        // add delay of 5 seconds
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+        await trackRun();
       }
     };
 
